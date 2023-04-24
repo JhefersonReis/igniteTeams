@@ -6,14 +6,31 @@ import { Button } from "@components/Button";
 import { Input } from "@components/Input";
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
+import { groupCreate } from "@storage/group/groupCreate";
+import { appError } from "@utils/appError";
+import { Alert } from "react-native";
 
 export function NewGroup() {
   const [group, setGroup] = useState("");
 
   const navigation = useNavigation();
 
-  function handleNew() {
-    navigation.navigate("players", { group });
+  async function handleNew() {
+    try {
+      if (group.trim().length === 0) {
+        return Alert.alert("Novo time", "Nome do time não pode ser vazio");
+      }
+
+      await groupCreate(group);
+      navigation.navigate("players", { group });
+    } catch (error) {
+      if (error instanceof appError) {
+        Alert.alert("Novo time", error.message);
+      } else {
+        Alert.alert("Novo time", "Erro ao criar o time");
+        console.log(error);
+      }
+    }
   }
 
   return (
@@ -25,17 +42,13 @@ export function NewGroup() {
           <Icon />
 
           <Highlight
-            title="Nova turma"
-            subtitle="crie a turma para adicionar as pessoas"
+            title="Novo time"
+            subtitle="Crie o time para adicionar as pessoas"
           />
 
-          <Input placeholder="Nome da Turma" onChangeText={setGroup} />
+          <Input placeholder="Nome do time" onChangeText={setGroup} />
 
-          <Button
-            title="Criar turma"
-            style={{ marginTop: 20 }}
-            onPress={handleNew}
-          />
+          <Button title="Criar" style={{ marginTop: 20 }} onPress={handleNew} />
         </Content>
       </Container>
     </KeyboardAvoiding>
